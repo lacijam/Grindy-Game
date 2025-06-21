@@ -1,0 +1,167 @@
+Here is your updated and consolidated design specification in plain text format, without markdown, and with integrated improvements:
+
+---
+
+Grindy single-player offline RPG inspired by Hypixel Skyblock and RuneScape. Progression is driven by long-term goals: defeating enemies, skilling, crafting, and acquiring gear. Difficulty is determined by time commitment, not punishing mechanics.
+
+Core Gameplay Loop:
+
+* Choose a goal (e.g. craft item, reach level, defeat boss)
+* Grind enemies or resources toward that goal
+* Level up or craft improved tools, weapons, and gear
+* Unlock new content: zones, enemies, recipes, pets
+
+Progression Systems:
+
+Skills and XP:
+
+* Skills include Combat, Mining, Woodcutting, and Slayer (more TBD)
+* Each skill tracks XP and level (1–60)
+* Level-ups grant stat bonuses (e.g. +5 Defense per Mining level)
+* Certain tools, nodes, and gear are gated by skill levels
+
+Resource Mastery:
+
+* Tracks total items gathered per resource type
+* Mastery levels at thresholds (e.g. 10, 50, 100, 500...)
+* Unlocks recipes, boosts drop yield, and grants stat bonuses
+
+Beastiary:
+
+* Tracks total kills per enemy type
+* Tier levels at 1, 10, 50, 100, 1000, etc.
+* Grants passive damage bonuses against those enemies
+* Maxing Beastiary entries is a deep endgame challenge
+* Total Beastiary level (sum of all levels) grants global bonuses (e.g. +HP, Strength, Magic Find)
+
+Zone Mastery:
+
+* Tracks all content cleared in a zone: Beastiary entries, resource mastery, unique drops
+* Unlocks zone-specific bonuses (e.g. +1% XP or drop rate)
+* Maxing requires maxing all enemies and nodes within a zone
+
+Collection Log:
+
+* Tracks all items dropped or crafted
+* Completion milestones grant Magic Find (e.g. +1 at 10 items, +2 at 100, etc.)
+
+Slayer System:
+
+* Tasks are assigned by Slayer Master NPCs (e.g. “Kill 30 Cave Slimes”)
+* Slayer XP and levels unlock harder tasks, new zones, and unique Slayer gear
+* Bonus rewards (e.g. XP or drop multipliers) while on-task
+
+Skill Contracts / Job Board:
+
+* Random daily or weekly contracts: “Mine 100 Iron Ore”, “Defeat 10 enemies without getting hit”
+* Rewards include gold, enchantment materials, temporary buffs
+* Scales with total skill level or mastery
+
+Item Systems:
+
+Item Types:
+
+* Weapons (swords, staves, bows)
+* Tools (pickaxes, axes, etc.)
+* Armour (body, head, legs)
+* Accessories (rings, amulets)
+
+Stats and Scaling:
+
+* Power comes from stat bonuses on gear and level-ups
+* Generic items roll stat ranges (e.g. Iron Sword: 10–12 damage)
+* Unique items drop with fixed stats (e.g. Dustfang)
+* Items can be Ancient (50% boosted stats) or Enchanted (prefix/suffix buffs)
+* Use-based upgrades (e.g. kill-count scaling) evolve weapons
+* Multiple items from the same set grant bonuses
+
+Item Enchantments:
+
+* Enchantments applied via drops or crafting (e.g. Spicy = +Crit Damage)
+* Buffs can be applied permanently using enhancement items
+* Buffs stored in item data and shown in tooltips
+* Stat bonuses increase dynamically with counters (e.g. +1 Strength at 100 kills)
+
+Pet System:
+
+* Pets drop from enemies or hatch from rare items
+* Provide passive stat boosts (e.g. XP gain, magic find, auto-pickup)
+* Some pets grant bonuses against specific mobs (e.g. Zombie Pet reduces zombie damage)
+* Pets gain XP and can evolve using upgrade items (e.g. Zombie Catalyst)
+* Pet collection log tracks discovery and evolution
+
+Combat System:
+
+* Attack require left-click
+* Semi-idle: player dodges and positions, with aimable area.
+* Attack types: Melee (swords), Magic (AOEs), Ranged (projectiles)
+* Advanced weapons unlock multi-hit, AOE, and projectile spread
+* Enemies use contact damage and AOE patterns
+* Bosses have arenas, rare drops, unique behaviours
+* Mutated mobs add variety (e.g. Exploding, Fast, Poisonous)
+* Mutation chance increases with Beastiary level
+
+Death:
+
+* Non-punishing: player respawns at last safe zone
+* Safe zones marked by a zone flag; entering one updates player’s respawn location
+* Gold loss on death is under consideration
+
+Tools and Gathering:
+
+* Tools inflict HP on nodes; nodes give partial rewards per hit
+* Final hit awards bonus XP and full drop table
+* Tool stats:
+  * Damage: how much HP per hit
+  * Speed: cooldown reduction
+  * Breaking Power: restricts access to higher-tier nodes
+
+User Interface and Quality of Life:
+
+* Hotbar: equip and switch tools/weapons
+* Skill UI: XP bars with level and stat tooltips
+* Tooltip system: dynamic info on hover (items, skills, resources, etc.)
+* Zones show discovery messages
+* Damage, XP, and level-up popups
+* Alt-key shows stat ranges on tooltips
+* Tooltips show permanent buffs, current upgrade progress, and counters
+* UI pane shows pickup log, skill XP bars, gold, and current action
+
+World and Zones:
+
+* Each zone has enemies, nodes, portals, and size info
+* Safe zones serve as respawn hubs
+* Thematic connections (e.g. Forest → Clearing → Hollow)
+* Zones can have requirements (e.g. Mining 10)
+* Layouts are square; future zones may use rooms/corridors (procedural or hand-designed)
+* Mining nodes spawn in clusters
+* Boss zones support cutscene-like intros
+* Shrines may appear that offer temporary buffs to the player
+
+Zone Modifiers:
+
+* Rotating zone effects: e.g. +50% drop chance for silk, enemies move faster but drop more XP
+* Player can re-roll zone modifiers with consumables
+* Rare cursed portals spawn harder alternate versions of existing zones
+
+Economic Systems:
+
+* Gold has no function yet
+* Proposed sinks:
+
+  * Crafting and enchantment costs
+  * Contract re-rolls or cosmetic upgrades
+
+Endgame and Replayability:
+
+* Intended for long-term engagement
+* Maxing everything is optional and time-intensive
+* Late-game goals:
+
+  * Level 60 in all skills
+  * Full Beastiary and Collection Log
+  * Maxing unique gear
+  * Reaching the top of Hellish Tower (Combat 55+)
+  * Slayer grind to highest tier
+  * Perfect zone mastery
+
