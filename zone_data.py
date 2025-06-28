@@ -11,107 +11,39 @@ ZONE_DATA = [
         ],
         "num_resources": 3,
         "connections": {
-            "left": "mining_camp",
-            "right": "graveyard",
             "top": "forest",
+            "right": "graveyard",
         },
         "type": "combat",
-    },
-    {
-        "id": "mining_camp",
-        "name": "Mining Camp",
-        "size": 1000,
-        "safe": True,
-        "enemy_spawn_table": [],
-        "num_enemies": 0,
-        "resource_node_spawn_table": [
-            ("coal", 1.0), ("stone", 0.3), ("iron", 0.1)
-        ],
-        "num_resources": 20,
-        "connections": {
-            "right": "starter_zone",
-            "down": "caverns",
-        },
-        "type": "mining",
-        "requirements": {
-            "mining": 2,
-        },
     },
     {
         "id": "forest",
         "name": "Forest",
         "size": 1200,
-        "safe": False,
-        "enemy_spawn_table": [("slime", 1.0)],
-        "num_enemies": 5,
+        "safe": True,
+        "enemy_spawn_table": [("slime", 1.0), ],
+        "num_enemies": 25,
         "resource_node_spawn_table": [
-            ("tree", 1.0)
         ],
-        "num_resources": 15,
+        "num_resources": 0,
         "connections": {
-            "bottom": "starter_zone",
-            "right": "oak_forest",
+            "top": "deep_hollow",
         },
-        "type": "woodcutting",
-        "requirements": {},
+        "type": "combat",
     },
     {
-        "id": "oak_forest",
-        "name": "Oak Forest",
-        "size": 1200,
-        "safe": False,
-        "enemy_spawn_table": [("slime", 1.0)],
-        "num_enemies": 5,
-        "resource_node_spawn_table": [
-            ("oak_tree", 1.0)
-        ],
-        "num_resources": 15,
-        "connections": {
-            "left": "forest",
-            "top": "dark_thorn"
-        },
-        "type": "woodcutting",
-        "requirements": {
-            "woodcutting": 5
-        },
-    },
-    {
-        "id": "dark_thorn",
-        "name": "Dark Thorn",
+        "id": "deep_hollow",
+        "name": "Deep Hollow",
         "size": 800,
-        "safe": False,
-        "enemy_spawn_table": [("bark_fiend", 1.0)],
+        "safe": True,
+        "enemy_spawn_table": [("tree_fangs", 1.0), ],
         "num_enemies": 10,
         "resource_node_spawn_table": [
-            ("corrupted_tree", 1.0)
         ],
-        "num_resources": 5,
-        "connections": {
-            "bottom": "oak_forest",
-        },
-        "type": "woodcutting",
-        "requirements": {
-            "combat": 10,
-            "woodcutting": 10
-        },
-    },
-    {
-        "id": "caverns",
-        "name": "Caverns",
-        "size": 1600,
-        "safe": False,
-        "enemy_spawn_table": [("gloop", 1.0)],
-        "num_enemies": 3,
-        "resource_node_spawn_table": [
-            ("iron", 0.8), ("stone", 0.5), ("coal", 0.5)
-        ],
-        "num_resources": 25,
+        "num_resources": 0,
         "connections": {
         },
-        "type": "mining",
-        "requirements": {
-            "mining": 5
-        }
+        "type": "combat",
     },
     {
         "id": "graveyard",
@@ -177,18 +109,5 @@ ZONE_DATA = [
         },
         "type": "combat",
         "requirements": {"combat": 8 }
-    },
-    {
-        "id": "phone_booth",
-        "name": "The Phone Booth",
-        "size": 200,
-        "safe": False,
-        "enemy_spawn_table": [("bombaclat", 1.0)],
-        "num_enemies": 1,
-        "resource_node_spawn_table": [],
-        "num_resources": 0,
-        "connections": {"top": "starter_zone"},
-        "type": "boss",
-        "requirements": {"combat": 10}
     },
 ]

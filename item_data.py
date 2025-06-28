@@ -54,6 +54,13 @@ ITEMS = {
         "rarity": "common",
         "max_mastery_level": 10,
     },
+    "ancient_bark": {
+        "name": "Ancient Bark",
+        "category": "resource",
+        "description": "It's barky...",
+        "rarity": "uncommon",
+        "max_mastery_level": 10,
+    },
     "bone": {
         "name": "Bone",
         "category": "resource",
@@ -106,6 +113,12 @@ ITEMS = {
         "name": "Slime Soul",
         "category": "resource",
         "description": "The remnents of a strong green one.",
+        "rarity": "legendary",
+    },
+    "tree_soul": {
+        "name": "Tree Soul",
+        "category": "resource",
+        "description": "The remnents of a strong barky one.",
         "rarity": "legendary",
     },
     "silk_soul": {
@@ -234,6 +247,21 @@ ITEMS = {
             "crit_chance": 10,
         },
         "counter_id": "piercing_storm"
+    },
+    "axe_of_thorns": {
+        "name": "Axe of Thorns",
+        "category": "weapon",
+        "description": "Ouch!",
+        "rarity": "epic",
+        "skill": "combat",
+        "radius": 60,
+        "delay": 850,
+        "weapon": {"damage": 50},
+        "stat_bonuses": {
+            "strength": 25,
+            "attack_speed": 20,
+        },
+        "counter_id": "needle_dread"
     },
     "iron_maul": {
         "name": "Iron Maul",

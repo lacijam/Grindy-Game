@@ -27,25 +27,25 @@ ENEMY_DATA = {
             "thresholds": [1, 10, 50, 100, 200, 500, 1000, 2500, 5000, 10000, 25000, 50000]
         }
     },
-    "gloop": {
-        "name": "Gloop",
+    "tree_fang": {
+        "name": "Tree Fang",
         "type": "mob",
-        "size": 30,
-        "colour": (255, 255, 0),
+        "size": 25,
+        "colour": (150, 255, 150),
         "sounds": {
-            "hit": "slime_hit",
+            "hit": "hard_hit",
         },
-        "level": 10,
-        "hp": 200,
-        "damage": 25,
-        "speed": 50,
-        "weight": 2.6,
-        "xp": 50,
-        "coins": 15,
+        "level": 12,
+        "hp": 150,
+        "damage": 60,
+        "speed": 150,
+        "weight": 1.4,
+        "xp": 25,
+        "coins": 5,
         "drop_table": {
-            "common": [("slime_juice", 0.7, (3, 5))],
-            "rare": [("slime_core", 0.008)],
-            "mythic": [("slime_soul", 0.00003)],
+            "rare": [("ancient_bark", 0.05, (1, 3))],
+            "epic": [("axe_of_thorns", 0.002)],
+            "mythic": [("tree_soul", 0.00001)],
         },
         "beastiary": {
             "max_level": 12,

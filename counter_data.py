@@ -13,4 +13,18 @@ COUNTER_DATA = {
             {"strength": 150},
         ]
     },
+    "needle_dread": {
+        "type": "kills",
+        "name": "Needle Dread",
+        "description": "Gain bonus power by killing foes.",
+        "tiers": [10, 50, 100, 250, 500, 1000],
+        "bonuses": [
+            {"crit_damage": 10},
+            {"crit_damage": 20},
+            {"crit_damage": 40},
+            {"crit_damage": 70},
+            {"crit_damage": 100},
+            {"crit_damage": 150},
+        ]
+    },
 }

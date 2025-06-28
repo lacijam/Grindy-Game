@@ -114,22 +114,6 @@ class ActionItem:
 
         return damage, crit
 
-    def _spawn_combat_effects(self, zone, camera, player, target, damage, crit, dt):
-        if camera:
-            camera.shake(calculate_shake_intensity(damage, crit), duration=0.2)
-
-        zone.spawn_particles(
-            x=target.rect.centerx,
-            y=target.rect.centery,
-            colour=(180, 0, 0),
-            source_x=player.pos.x,
-            source_y=player.pos.y,
-            count=10,
-            life_min=0.2,
-            life_max=0.3,
-            dt=dt
-        )
-
     def ready(self, player):
         last = player.item_cooldowns.get(self.id, 0)
         attack_speed = player.stats.total_stats.get("attack_speed", 0)

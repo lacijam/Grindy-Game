@@ -62,7 +62,6 @@ def get_enchantment_display_name(enchant_id):
         "defense": "Defense",
         "hp": "HP",
         "magic_find": "Magic Find",
-        # Add more here as needed
     }
     return display_names.get(enchant_id, enchant_id.replace("_", " ").title())
 
@@ -76,15 +75,14 @@ def get_colour_for_type(thing_type):
         "beastiary": (255, 100, 120),
         "number": (150, 150, 255),
         "highlight": (200, 200, 200),
-        # tasks
         "kill": (255, 80, 80),
         "mine": (80, 80, 255),
         "craft": (255, 165, 0),
         "reach_level": (80, 255, 80),
-        "set_bonus_current": (200, 255, 200),
+        "set_bonus_current": (100, 255, 100),
         "set_bonus_unlocked": (100, 255, 100),
         "set_bonus_locked": (100, 100, 100),
-    }.get(thing_type, (255, 255, 255))  # default white
+    }.get(thing_type, (255, 255, 255))
 
 def get_difficulty_colour(difficulty):
     colours = {

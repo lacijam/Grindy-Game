@@ -90,27 +90,22 @@ class Game:
             print(f"Zone {next_zone_id} not loaded!")
             return
 
-        # Set the current zone
         self.current_zone = self.zones[next_zone_id]
         self.player.zone = self.current_zone
 
-        # Move player to entry point
         x, y = self.current_zone.get_entry_point(exit_direction)
         self.player.pos.x = x - self.player.rect.width // 2
         self.player.pos.y = y - self.player.rect.height // 2
         self.player.rect.topleft = (int(self.player.pos.x), int(self.player.pos.y))
 
-        # Center camera and prepare zone state
         self.camera.center_on(self.player.rect)
         self.current_zone.prepare(self.player)
 
-        # Handle safe zone message
         if self.current_zone.safe:
             if self.player.last_safe_zone_id != self.current_zone.id:
                 self.message_log.queue([("Safe zone updated", "white")])
             self.player.update_last_safe_zone(self.current_zone.id)
 
-        # Handle discovery
         if self.current_zone.id not in self.player.discovered_zones:
             self.player.discovered_zones.add(self.current_zone.id)
             self.message_log.queue([
@@ -118,7 +113,6 @@ class Game:
                 (self.current_zone.name, self.current_zone.type)
             ])
 
-        # Handle boss zone intro
         if self.current_zone.type == "boss" and not self.current_zone.has_intro_played:
             boss_rect, boss_name, boss_subtitle = self.current_zone.get_boss_metadata()
             if boss_rect:
@@ -340,7 +334,9 @@ class Game:
                 item = ITEMS.get(base_id, {})
                 item_name = item.get("name", "UNKNOWN")
 
-                if item_id not in self.player.discovered_resources:
+                is_resource = item.get("category") == "resource"
+                should_add = is_resource and item_id not in self.player.discovered_resources
+                if should_add:
                     self.player.discovered_resources.add(item_id)
                     self.message_log.queue([
                         ("Discovered Resource: ", "white"),
@@ -353,7 +349,9 @@ class Game:
                 }
 
                 self.player.inventory.add_item(item_id, qty)
-                self.tasks.handle_resource_gain(item_id, qty)
+                
+                if is_resource:
+                    self.tasks.handle_resource_gain(item_id, qty)
 
                 self._log_rare_drop(item_id, item, tier, final_magic_find)
 
@@ -469,7 +467,7 @@ class Game:
 
         if should_use and self.hovered_target:
             if item.skill == "combat":
-                item.trigger(self.player)  # Trigger cooldown manually
+                item.trigger(self.player)
                 self.current_zone.process_combat(self.player, self.hovered_target, item, self.camera, dt)
             else:
                 item.use(self.player, self.current_zone, self.camera, self.sound_manager.queue, dt, self.hovered_target, self.tasks.handle_node_gather)

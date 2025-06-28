@@ -1,8 +1,6 @@
-# (Same imports as before)
 import math
 import random
 import pygame
-
 
 from enemy_data import ENEMY_DATA
 from draw_helpers import draw_progress_bar
