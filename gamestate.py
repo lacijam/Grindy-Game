@@ -6,6 +6,5 @@ class GameState(Enum):
     INVENTORY = 2
     CRAFTING = 3
     BEASTIARY = 4
-    MASTERY = 5
-    MESSAGE_LOG = 6
-    TASKS = 7
+    MESSAGE_LOG = 5
+    TASKS = 6

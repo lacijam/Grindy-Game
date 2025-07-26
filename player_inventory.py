@@ -47,7 +47,6 @@ class PlayerInventory:
 
     def _add_stackable_item(self, item_id, amount, log_callback):
         self.items[item_id] = self.items.get(item_id, 0) + amount
-        self.player.mastery.apply_resource_mastery_gain(item_id, amount)
         if log_callback:
             log_callback(item_id, amount)
 

@@ -111,7 +111,6 @@ class LeapState(State):
             enemy.dy = 0
             ctx.queue_effect("particles", pos=enemy.rect.center, colour=enemy.current_colour)
             ctx.queue_effect("sound", id=self.sound_id, pos=enemy.rect.center)
-            ctx.bounce_timer = ctx.bounce_duration
             ctx.fsm.change_state(self.next_state, enemy, ctx)
 
 class ZigzagState(State):

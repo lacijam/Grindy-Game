@@ -3,7 +3,6 @@ import pygame
 from constants import *
 from action_item import ActionItem
 from beastiary_tracker import BeastiaryTracker
-from resource_mastery_tracker import ResourceMasteryTracker
 from player_skills import PlayerSkills
 from player_stats import PlayerStats
 from player_equipment import PlayerEquipment
@@ -21,7 +20,6 @@ class Player(BaseEntity):
         self.base_speed = 150
 
         self.gold = 0
-        self.freeze = False
 
         self.fist = ActionItem(
             "fist",
@@ -42,7 +40,6 @@ class Player(BaseEntity):
         self.stats = PlayerStats(self)
 
         self.beastiary = BeastiaryTracker(self)
-        self.mastery = ResourceMasteryTracker(self)
 
         self.combat = CombatEntity(
             owner=self,
@@ -110,9 +107,6 @@ class Player(BaseEntity):
             self.active_item = self.fist
 
     def update(self, dt, zone_size):
-        if self.freeze:
-            return
-        
         self.combat.set_active_effects(self.stats.active_effects)
         self.combat.update(dt)
 
@@ -177,7 +171,6 @@ class Player(BaseEntity):
         self.active_item_metadata = metadata
         self.active_item_id = item_id
         return True
-
 
     def _unequip_active_item(self):
         self.active_item = self.fist

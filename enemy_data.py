@@ -197,28 +197,4 @@ ENEMY_DATA = {
             "thresholds": [1, 10, 50, 100, 200, 500, 1000, 2500, 5000, 10000, 25000, 50000]
         }
     },
-    "bombaclat": {
-        "name": "BOMBACLAT",
-        "type": "boss",
-        "size": 64,
-        "colour": (180, 0, 255),
-        "sounds": {
-            "hit": "slime_hit",
-        },
-        "level": 100,
-        "damage": 500,
-        "hp": 5000,
-        "speed": 200,
-        "weight": 8.0,
-        "xp": 200,
-        "coins": 500,
-        "drop_table": {
-            "common": [],
-        },
-        "beastiary": {
-            "max_level": 1,
-            "thresholds": [1]
-        },
-        "subtitle": "Prodigee of Monkey Goggins"
-    }
 }

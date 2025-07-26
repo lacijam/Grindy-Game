@@ -46,10 +46,6 @@ class PlayerStats:
             "enemy": {"strength": 1, "magic_find": 1},
         }
 
-        self.resource_mastery_bonuses = {
-            "magic_find": {"amount": 1, "every": 10}
-        }
-
     def _rebuild_stat_sources(self):
         self.active_effects.clear()
 
@@ -60,7 +56,6 @@ class PlayerStats:
         self._add_equipment_bonuses()
         self._add_equipment_set_bonuses()
         self._add_beastiary_bonuses()
-        self._add_resource_mastery_bonuses()
         self._add_temp_stat_bonuses()
 
     def is_item_in_active_set(self, item_id):
@@ -260,19 +255,6 @@ class PlayerStats:
         entry = StatSourceEntry("character", "Beastiary Levels", beast_level)
         self.stat_sources["max_hp"].append(entry)
 
-    def _add_resource_mastery_bonuses(self):
-        resource_level = self.player.mastery.get_total_resource_mastery_level()
-
-        magic_find_every = self.resource_mastery_bonuses["magic_find"]["every"]
-        magic_find_amount = self.resource_mastery_bonuses["magic_find"]["amount"]
-        magic_find_bonus = (resource_level // magic_find_every) * magic_find_amount
-
-        if magic_find_bonus <= 0:
-            return
-
-        entry = StatSourceEntry("character", "Resource Mastery", magic_find_bonus)
-        self.stat_sources["magic_find"].append(entry)
-
     def calculate_damage_reduction(self):
         defense = self.total_stats.get("defense", 0)
         if defense <= 0:
@@ -298,7 +280,7 @@ class PlayerStats:
             ]
 
     def get_healing_sources(self):
-        # Effects
+        #TODO Get these dynamically from the data.
         HEALING_EFFECT_IDS = {"slime_regen"}
 
         sources = []

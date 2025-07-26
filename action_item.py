@@ -2,7 +2,6 @@ import pygame
 import random
 
 from utils import calculate_shake_intensity, UseResult
-from resourcenode import ResourceNode
 
 class ActionItem:
     def __init__(self, id, radius, delay, damage, knockback=300, skill="combat"):
@@ -37,49 +36,6 @@ class ActionItem:
 
         return None
 
-
-    def _use_on_resource_node(self, player, zone, play_sound_fn, target, on_node_gather=None):
-        if not isinstance(target, ResourceNode):
-            return None
-
-        if not target.skill or target.skill != self.skill:
-            return None
-
-        if player.skills.get_skill_level(target.skill) < target.required_skills.get(target.skill, 0):
-            return None
-
-        damage = 1
-
-        partial_xp = target.get_partial_xp(damage)
-        partial_drops = target.get_partial_drops(damage)
-
-        self.trigger(player)
-
-        depleted = target.mine(damage)
-
-        if on_node_gather:
-            on_node_gather(target.id, amount=1)
-
-        if play_sound_fn:
-            play_sound_fn(f"{target.skill}_strike")
-
-        result = UseResult()
-        result.partial_xp[target.skill] = partial_xp
-        result.partial_drops = partial_drops
-
-        if depleted:
-            zone.nodes_to_kill.append(target)
-
-            if play_sound_fn:
-                play_sound_fn("enemy_death")
-
-            result.final_hit = True
-            result.partial_xp = {}
-            result.final_xp[target.skill] = target.reward_xp
-            result.final_magic_find = 0
-            result.final_drops = target.drop_items()
-
-        return result
 
     def _calculate_knockback_direction(self, player, target):
         direction = pygame.Vector2(target.rect.center) - pygame.Vector2(player.rect.center)

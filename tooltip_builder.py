@@ -60,13 +60,6 @@ TOOLTIP_TEMPLATES = {
         {"field": "label", "style": "header"},
         {"field": "level", "style": "total_beastiary_line"},
     ],
-    "mastery_level": [
-        {"field": "progress", "style": "mastery_level_thresholds"},
-    ],
-    "total_mastery": [
-        {"field": "label", "style": "header"},
-        {"field": "level", "style": "total_mastery_line"},
-    ],
     "skill": [
         {"field": "name", "style": "header"},
         {"field": "xp", "style": "skill_xp"},
@@ -104,24 +97,6 @@ def get_tooltips():
 def clear_tooltips():
     _queue.clear()
 
-def wrap_text(text, font, max_width):
-    words = text.split()
-    lines = []
-    current_line = ""
-
-    for word in words:
-        test_line = f"{current_line} {word}".strip()
-        if font.size(test_line)[0] <= max_width:
-            current_line = test_line
-        else:
-            lines.append(current_line)
-            current_line = word
-
-    if current_line:
-        lines.append(current_line)
-
-    return lines
-
 def build_tooltip_lines_from_template(tooltip, ctx, template):
     lines = []
     data = tooltip["data"]
@@ -129,20 +104,13 @@ def build_tooltip_lines_from_template(tooltip, ctx, template):
     if tooltip["type"] == "item":
         item_full_data = data
         
-        # TODO this is awful
         merged_data = {}
-        if isinstance(data, dict):
-            # CraftingUI may pass item data that isn't in the player's inventory
-            # TODO : handle this more gracefully
-            merged_data = dict(item_full_data.get("base_data", data))
-            merged_data["metadata"] = item_full_data.get("metadata", {})
-            merged_data["is_instance"] = item_full_data.get("is_instance", False)
-            merged_data["item_id"] = item_full_data.get("item_id", data.get("id", "unknown"))
-        elif isinstance(data, object):
-            merged_data = dict(item_full_data.base_data)
-            merged_data["metadata"] = item_full_data.metadata
-            merged_data["is_instance"] = item_full_data.is_instance
-            merged_data["item_id"] = item_full_data.item_id
+
+        # Take the item object and merge all the fields into a dict for easier access
+        merged_data = dict(item_full_data.base_data)
+        merged_data["metadata"] = item_full_data.metadata
+        merged_data["is_instance"] = item_full_data.is_instance
+        merged_data["item_id"] = item_full_data.item_id
 
         data = merged_data
 
@@ -150,20 +118,10 @@ def build_tooltip_lines_from_template(tooltip, ctx, template):
         field = section["field"]
         style = section["style"]
 
-        # TODO standardise what we pass in
-        if isinstance(data, dict): # some items have fields that may not exist
-            has_field = field in data
-        else:
-            has_field = hasattr(data, field)
-
-        if not has_field:
+        if not field in data:
             continue
 
-        # TODO standardise how we access fields
-        if isinstance(data, dict):
-            field_data = data.get(field, None)
-        else:
-            field_data = getattr(data, field, None)
+        field_data = data.get(field, None)
 
         if style == "header":
             label = field_data
@@ -316,6 +274,7 @@ def build_tooltip_lines_from_template(tooltip, ctx, template):
                         desc = desc_fn(values)
 
                     lines.append([("    - ", "white"), (f"{name}: ", (180, 180, 255)), (desc, (200, 200, 200))])
+
         elif style == "counter_progress":
             counter_id = field_data
             counter_data = COUNTER_DATA.get(counter_id)
@@ -398,16 +357,20 @@ def build_tooltip_lines_from_template(tooltip, ctx, template):
             ])
         elif style == "hp_line": # TODO hardcoded colour
             lines.append((f"HP: {field_data}", (200, 100, 100)))
+
         elif style == "drop_table":
             drops = field_data
             lines.extend(format_drop_table_lines(drops))
+
         elif style == "resource_xp": # TODO hardcoded colour
             lines.append((f"XP: {field_data}", (180, 180, 255)))
+
         elif style == "resource_required_skills":
             for skill, level in field_data.items():
                 player_level = ctx.player.skills.get_skill_level(skill)
                 if player_level < level: # TODO hardcoded colour
                     lines.append((f"{skill.title()} Lv {level} required", (255, 100, 100)))
+
         elif style == "recipe_outputs":
             for output_id, qty in field_data.items():
                 output_item = ITEMS.get(output_id, {})
@@ -415,12 +378,14 @@ def build_tooltip_lines_from_template(tooltip, ctx, template):
                 rarity = output_item.get("rarity", "COMMON")
                 colour = get_rarity_colour(rarity)
                 lines.append((f"Produces: {name} x{qty}", colour))
+
         elif style == "recipe_materials":
             for item_id, req_qty in field_data.items():
                 have = ctx.player.inventory.items.get(item_id, 0)
                 name = ITEMS.get(item_id, {}).get("name", item_id).title()
                 colour = (255, 255, 255) if have >= req_qty else (255, 100, 100) # TODO hardcoded colour
                 lines.append((f"{name}: {have}/{req_qty}", colour))
+
         elif style == "recipe_requirements":
             requirements = field_data
             for skill, level in requirements.items():
@@ -429,11 +394,13 @@ def build_tooltip_lines_from_template(tooltip, ctx, template):
                 else:
                     colour = (255, 100, 100)  # red
                 lines.append((f"Requires: {skill.title()} Lv {level}", colour))
+
         elif style == "zone_requirements":
             for skill, level in field_data.items():
                 current = ctx.player.skills.get_skill_level(skill)
                 colour = (255, 255, 255) if current >= level else (255, 100, 100) # TODO hardcoded colour
                 lines.append((f"{skill.title()} Lv {level} required", colour))
+
         elif style == "beastiary_info":
             enemy_id = field_data
             enemy_data = ENEMY_DATA.get(enemy_id, {})
@@ -484,6 +451,7 @@ def build_tooltip_lines_from_template(tooltip, ctx, template):
                 for stat, amount in rewards:
                     stat_label = stat.replace("_", " ").title()
                     lines.append([(f"+{amount}", get_colour_for_type("number")), (" ", "white"), (stat_label, "white")])
+
         elif style == "total_beastiary_line":
             level = field_data
             next_level = level + 1
@@ -502,46 +470,6 @@ def build_tooltip_lines_from_template(tooltip, ctx, template):
 
             # Show next level rewards
             rewards = ctx.player.beastiary.get_beastiary_level_rewards(next_level)
-            if rewards:
-                lines.append([("Next Level Reward:", "white")])
-                for stat, amount in rewards:
-                    stat_label = stat.replace("_", " ").title()
-                    lines.append([
-                        (f"+{format_number_short(amount)}", get_colour_for_type("number")),
-                        (" ", "white"),
-                        (stat_label, get_stat_colour(stat))
-                    ])
-        elif style == "mastery_level_thresholds":
-            thresholds = field_data.get("thresholds", [])
-            count = field_data.get("count", 0)
-            level = field_data.get("level", 0)
-
-            for i, required in enumerate(thresholds):
-                if count >= required:
-                    colour = (180, 255, 180)  # Unlocked
-                elif i == level:
-                    colour = (255, 255, 100)  # Next
-                else:
-                    colour = (200, 200, 200)  # Locked
-
-                lines.append((f"Level {i + 1}: {required} collected", colour))
-        elif style == "total_mastery_line":
-            level = field_data
-            lines.append([("Total Level: ", "white"), (str(level), get_colour_for_type("number"))])
-
-            # Show current bonuses based on award tracker
-            for stat, bonus_total in ctx.player.mastery.get_total_resource_bonuses():
-                stat_label = stat.replace("_", " ").title()
-                lines.append([
-                    ("+", "white"),
-                    (str(format_number_short(bonus_total)), get_colour_for_type("number")),
-                    (" ", "white"),
-                    (stat_label, get_stat_colour(stat))
-                ])
-
-            # Show next level rewards
-            next_level = level + 1
-            rewards = ctx.player.mastery.get_resource_mastery_level_rewards(next_level)
             if rewards:
                 lines.append([("Next Level Reward:", "white")])
                 for stat, amount in rewards:
@@ -722,6 +650,7 @@ def build_tooltip_lines_from_template(tooltip, ctx, template):
             difficulty = field_data.lower()
             colour = get_difficulty_colour(difficulty)
             lines.append([(f"Difficulty: {difficulty.title()}", colour)])
+
     return lines
 
 def build_tooltip_lines(tooltip, ctx):
@@ -734,9 +663,7 @@ def build_tooltip_lines(tooltip, ctx):
 
     return build_tooltip_lines_from_template(tooltip, ctx, template)
 
-
 def draw_tooltip_lines(screen, lines, font, pos):
-    # Render each line to surf(s), track width
     rendered_lines = []
     max_width = 0
     line_height = font.get_height()

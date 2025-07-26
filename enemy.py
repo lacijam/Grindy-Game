@@ -9,8 +9,6 @@ from state import *
 from combat_entity import CombatEntity
 from base_entity import BaseEntity
 
-KNOCKBACK_FRICTION = 5
-
 class EnemyContext:
     def __init__(self, zone, player, camera, zone_size):
         self.zone = zone
@@ -25,15 +23,14 @@ class MovementBehaviour:
     def update(self, enemy, dt, ctx):
         pass
 
+    def consume_effects(self):
+        return self.ctx.consume_effects()
+
 class MovementContext:
     def __init__(self, player):
         self.vector = pygame.Vector2()
-        self.squash_t = 0.0
 
         self.player = player
-
-        self.bounce_timer = 0.0
-        self.bounce_duration = 0.3
 
         self.pending_effects = []
 
@@ -88,9 +85,6 @@ class SpiderMovementBehaviour(MovementBehaviour):
 
         self.fsm.update(enemy, dt, self.ctx)
 
-    def consume_effects(self):
-        return self.ctx.consume_effects()
-
 class SlimeMovementBehaviour(MovementBehaviour):
     def __init__(self, player):
         super().__init__()
@@ -132,22 +126,8 @@ class SlimeMovementBehaviour(MovementBehaviour):
             self.fsm.change_state("idle", enemy, self.ctx)
             self.initialized = True
 
-        self.ctx.bounce_timer = max(0, self.ctx.bounce_timer - dt)
         self.fsm.update(enemy, dt, self.ctx)
-
-    def consume_effects(self):
-        return self.ctx.consume_effects()
     
-    def get_squash_t(self):
-        return getattr(self.ctx, "squash_t", 0.0)
-
-    def get_bounce_scale(self):
-        if self.ctx.bounce_timer > 0:
-            t = 1.0 - (self.ctx.bounce_timer / self.ctx.bounce_duration)
-            eased = math.sin(t * math.pi)
-            return 1.0 - 0.18 * eased, 1.0 + 0.18 * eased
-        return 1.0, 1.0
-
 class ZombieMovementBehaviour(MovementBehaviour):
     def __init__(self, player):
         super().__init__()
@@ -177,9 +157,6 @@ class ZombieMovementBehaviour(MovementBehaviour):
 
         self.ctx.fsm.update(enemy, dt, self.ctx)
 
-    def consume_effects(self):
-        return self.ctx.consume_effects()
-
 class SkeletonMovementBehaviour(MovementBehaviour):
     def __init__(self, player):
         super().__init__()
@@ -208,9 +185,6 @@ class SkeletonMovementBehaviour(MovementBehaviour):
             self.initialized = True
 
         self.ctx.fsm.update(enemy, dt, self.ctx)
-
-    def consume_effects(self):
-        return self.ctx.consume_effects()
 
 class Enemy(BaseEntity):
     def __init__(self, x, y, enemy_id, zone):
@@ -473,119 +447,3 @@ class Slime(Enemy):
                         ctx.player.rect.center,
                         400
                     )
-
-    def draw_base(self, screen, camera, font):
-        scale_x, scale_y = 1.0, 1.0
-
-        squash_t = getattr(self.movement_behaviour, "get_squash_t", lambda: 0.0)()
-        bounce_scale = getattr(self.movement_behaviour, "get_bounce_scale", lambda: (1.0, 1.0))()
-        scale_x *= bounce_scale[0]
-        scale_y *= bounce_scale[1]
-
-        eased = squash_t * squash_t * (3 - 2 * squash_t)
-        scale_y *= 1.0 - 0.15 * eased
-        scale_x *= 1.0 + 0.1 * eased
-
-        rect = self.rect.copy()
-        w_offset = int(rect.width * (1 - scale_x) / 2)
-        h_offset = int(rect.height * (1 - scale_y) / 2)
-        rect.inflate_ip(-2 * w_offset, -2 * h_offset)
-        rect.x += w_offset
-        rect.y += h_offset
-
-        pygame.draw.rect(screen, self.current_colour, camera.apply(rect))
-
-class Bombaclat(Enemy):
-    def __init__(self, x, y, player, zone):
-        super().__init__(x, y, "bombaclat", zone)
-
-class Gloop(Enemy):
-    def __init__(self, x, y, player, zone):
-        super().__init__(x, y, "gloop", zone)
-
-        self.aoe_active = False
-        self.aoe_timer = 0
-        self.aoe_charge_duration = 0.7
-        self.aoe_cooldown = 90
-        self.aoe_radius = 75
-        self.aoe_trigger_radius = 80
-        self.aoe_opacity = 0
-        self.last_aoe_time = -self.aoe_cooldown
-
-        self.aoe_radius_max = 75
-        self.aoe_radius_current = 0
-        self.aoe_opacity = 0
-
-        self.aoe_linger_duration = 0
-        self.aoe_linger_max = 1.2
-        self.aoe_position = None
-    
-    def update(self, dt, ctx):
-        player = ctx.player
-        camera = ctx.camera
-        zone_size = ctx.zone_size
-
-        super().update(dt, ctx)
-
-        # find distance from player to gloop
-        distance = self.rect.centerx - player.rect.centerx, self.rect.centery - player.rect.centery
-        dist_sq = distance[0] ** 2 + distance[1] ** 2
-
-        # if the player is in the radius then start the AOE sequence.
-        if dist_sq < self.aoe_trigger_radius ** 2 and pygame.time.get_ticks() - self.last_aoe_time > self.aoe_cooldown * 16:
-            self.aoe_active = True
-
-        if self.aoe_active:
-            self.aoe_timer += dt
-            t = min(self.aoe_timer / self.aoe_charge_duration, 1.0)
-
-            self.aoe_radius_current = int(self.aoe_radius_max * t) # linear easing
-            self.aoe_opacity = int(255 * t) # liner easing
-
-            if self.aoe_timer >= self.aoe_charge_duration:
-                # Shake the camera
-                camera.shake(magnitude=12, duration=0.75)
-                
-                # Check hit
-                dx = self.rect.centerx - player.rect.centerx
-                dy = self.rect.centery - player.rect.centery
-                if dx ** 2 + dy ** 2 <= self.aoe_radius ** 2:
-                    direction = pygame.Vector2(player.rect.center) - pygame.Vector2(self.rect.center)
-                    direction = direction.normalize() * 300 if direction.length_squared() > 0 else pygame.Vector2(0, 0)
-                    player.combat.take_damage(self.base_damage, direction)
-
-                # Save stomp locaotion for linger
-                self.aoe_position = self.rect.center
-                self.aoe_linger_duration = self.aoe_linger_max
-
-                # Reset the AOE
-                self.last_aoe_time = pygame.time.get_ticks()
-                self.aoe_active = False
-                self.aoe_timer = 0
-                self.aoe_radius_current = 0
-                self.aoe_opacity = 0
-
-        # fade away any lingering aoe
-        if self.aoe_linger_duration > 0:
-            self.aoe_linger_duration -= dt
-
-    def draw(self, screen, camera, font):
-        if self.aoe_active:
-            center = camera.apply(self.rect.center)
-            radius = self.aoe_radius_current
-            surface = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-            pygame.draw.circle(surface, (255, 0, 0, self.aoe_opacity), (radius, radius), radius)
-            screen.blit(surface, (center[0] - radius, center[1] - radius))
-
-        if self.aoe_linger_duration > 0 and self.aoe_position:
-            t = self.aoe_linger_duration / self.aoe_linger_max 
-            opacity = int(150 * t) # linear easing
-            radius = self.aoe_radius_max
-
-            # Draw linger aoe
-            linger_surface = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-            pygame.draw.circle(linger_surface, (180, 0, 180, opacity), (radius, radius), radius)
-            pos = camera.apply((self.aoe_position[0] - radius, self.aoe_position[1] - radius))
-            screen.blit(linger_surface, pos)
-
-        self.draw_base(screen, camera, font)

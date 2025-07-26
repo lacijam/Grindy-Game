@@ -1,8 +1,6 @@
 import pygame
 import random
 
-from resourcenode import ResourceNode
-from resource_node_data import *
 from constants import *
 from utils import *
 from tooltip_builder import *
@@ -23,8 +21,6 @@ class Zone:
         self.safe = safe
         self.num_enemies = num_enemies
         self.enemy_spawn_table = enemy_spawn_table
-        self.num_resources = num_resources
-        self.resource_node_spawn_table = resource_node_spawn_table
         self.connections = connections or {}
         self.name = name
         self.type = type
@@ -33,15 +29,9 @@ class Zone:
         self.enemies = []
         self.pending_enemy_results = []
 
-        self.resource_nodes = []
-        self.nodes_to_kill = []
-
-        self.boss = None
-
         self.kill_counts = {}
 
         self.prepared = False
-        self.has_intro_played = False
 
         self.particles = []
 
@@ -53,7 +43,6 @@ class Zone:
         
         self.prepared = True
         self.spawn_initial_enemies(player)
-        self.spawn_resources()
         self.create_portals()
 
     def get_entry_point(self, exit_direction, margin=50):
@@ -138,24 +127,6 @@ class Zone:
         subtitle = data.get("subtitle", "")  # Add 'subtitle' support to enemy_data
         return self.boss.rect, name, subtitle
 
-    def choose_resource_node_type(self):
-        total = sum(w for _, w in self.resource_node_spawn_table)
-        r = random.uniform(0, total)
-        accum = 0
-        for id, weight in self.resource_node_spawn_table:
-            accum += weight
-            if r <= accum:
-                return id
-        return self.resource_node_spawn_table[0][0]  # fallback
-    
-    def spawn_resources(self):
-        for _ in range(self.num_resources):
-            x = random.randint(0, self.size - 20)
-            y = random.randint(0, self.size - 20)
-            node_id = self.choose_resource_node_type()
-            node = ResourceNode(x, y, node_id)
-            self.resource_nodes.append(node)
-
     def check_portal_trigger(self, player, zones_by_id):
         for direction, rect in self.portals.items():
             if player.rect.colliderect(rect):
@@ -202,7 +173,6 @@ class Zone:
             life_max=0.3,
             dt=dt
         )
-
 
     def process_combat(self, player, target, item, camera, dt):
         context = {
@@ -294,23 +264,6 @@ class Zone:
         for enemy in self.enemies:
             enemy.update(dt, ctx)
 
-        for resource_node in self.resource_nodes:
-            resource_node.update(dt)
-
-        for node in self.nodes_to_kill:
-            if node in self.resource_nodes:
-                new_node_id = self.choose_resource_node_type()
-                new_node = ResourceNode(
-                    random.randint(0, self.size - 20),
-                    random.randint(0, self.size - 20),
-                    new_node_id
-                )
-
-                self.resource_nodes.remove(node)
-                self.resource_nodes.append(new_node)
-
-        self.nodes_to_kill.clear()
-
         for p in self.particles:
             p.update(dt)
         self.particles = [p for p in self.particles if not p.is_dead()]
@@ -359,7 +312,6 @@ class Zone:
         if extra_data:
             hook.update(extra_data)
         self.effect_hooks.append(hook)
-
 
     def render_effect_hooks(self, screen, camera, font, player, sound_manager):
         # Draw fiery ring around player if phoenix_aura is active
@@ -518,22 +470,6 @@ class Zone:
             screen.blit(font_surf, (label_x, label_y))
 
         self.draw_portals(screen, camera, font, player, zones_by_id)
-
-        for resource_node in self.resource_nodes:
-            resource_node.draw(screen, camera, font, player)
-            if camera.apply(resource_node.rect).collidepoint(pygame.mouse.get_pos()):
-                queue_tooltip({
-                    "type": "resource_node",
-                    "data": {
-                        "id": resource_node.id,
-                        "name": resource_node.data.get("name", resource_node.id).title(),
-                        "reward_xp": resource_node.reward_xp,
-                        "required_skills": resource_node.required_skills,
-                        "drop_table": resource_node.data.get("drop_table", [])
-                    },
-                    "position": pygame.mouse.get_pos(),
-                    "required_states": {GameState.PLAYING}
-                })
 
         for p in self.particles:
             p.draw(screen, camera)

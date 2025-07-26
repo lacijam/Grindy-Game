@@ -7,7 +7,6 @@ from player import Player
 from craftingui import CraftingUI
 from inventoryui import InventoryUI
 from beastiaryui import BeastiaryUI
-from masteryui import MasteryUI
 from task_ui import TaskUI
 from task_manager import TaskManager
 from item_data import *
@@ -24,7 +23,6 @@ from sound_manager import SoundManager
 from message_log import MessageLog
 from pickup_log import PickupLog
 from experience import *
-from mastery_data import get_mastery_contribution_for_item
 
 class Game:
     def __init__(self):
@@ -60,7 +58,6 @@ class Game:
         self.craftingui = CraftingUI(self.player, self.font, self.tasks, self.sound_manager)
         self.inventoryui = InventoryUI(self.player, self.font, self.sound_manager)
         self.beastiary_ui = BeastiaryUI(self.player, self.font)
-        self.mastery_ui = MasteryUI(self.player, self.font)
 
         self.damage_overlay_alpha = 0
         self.damage_overlay_decay_rate = 300
@@ -113,13 +110,6 @@ class Game:
                 (self.current_zone.name, self.current_zone.type)
             ])
 
-        if self.current_zone.type == "boss" and not self.current_zone.has_intro_played:
-            boss_rect, boss_name, boss_subtitle = self.current_zone.get_boss_metadata()
-            if boss_rect:
-                self.camera.begin_pan_to(boss_rect, 1.0, self.player.rect, 1.0)
-                self.camera.show_boss_title(boss_name, boss_subtitle)
-                self.current_zone.has_intro_played = True
-
     def handle_zone_transition(self, dt):
         if not self.transition.is_active():
             next_zone_id, direction = self.current_zone.check_portal_trigger(
@@ -151,8 +141,6 @@ class Game:
             return self.craftingui
         elif self.state == GameState.BEASTIARY:
             return self.beastiary_ui
-        elif self.state == GameState.MASTERY:
-            return self.mastery_ui
         elif self.state == GameState.TASKS:
             return self.task_ui
         return None
@@ -185,7 +173,6 @@ class Game:
             pygame.K_TAB: GameState.INVENTORY,
             pygame.K_c: GameState.CRAFTING,
             pygame.K_b: GameState.BEASTIARY,
-            pygame.K_m: GameState.MASTERY,
             pygame.K_p: GameState.PAUSED,
             pygame.K_SLASH: GameState.MESSAGE_LOG,
             pygame.K_t: GameState.TASKS
@@ -285,18 +272,6 @@ class Game:
 
         self._popup_offsets[key] = offset_y
 
-    def _log_mastery_level_up(self, item_id, item, new_level, prev_level=0):
-        name = item.get("name", item_id).title()
-        for level in range(prev_level + 1, new_level + 1):
-            self.message_log.queue([
-                ("Mastery", get_colour_for_type("mastery")),
-                (" Level Up! ", "white"),
-                (name, get_colour_for_type("resource")),
-                (" - Level ", "white"),
-                (str(level), "number")
-            ])
-        self.sound_manager.queue("level_up_mastery")
-
     def _log_rare_drop(self, item_id, item, tier, magic_find):
         if tier not in ("rare", "epic", "legendary", "mythic"):
             return
@@ -325,10 +300,6 @@ class Game:
             for item_id, item_data in dropset.items():
                 qty = item_data.get("qty", 1)
                 tier = item_data.get("tier", "mythic")
-                scaled_chance = item_data.get("chance", 0)
-
-                contribution = get_mastery_contribution_for_item(item_id)
-                affected_ids = set([item_id]) | set(contribution.keys())
 
                 base_id = self.player.inventory.get_base_id(item_id)
                 item = ITEMS.get(base_id, {})
@@ -343,11 +314,6 @@ class Game:
                         (item_name, get_colour_for_type("mastery"))
                     ])
 
-                prev_levels = {
-                    res_id: self.player.mastery.get_resource_mastery_level(res_id)[0]
-                    for res_id in affected_ids
-                }
-
                 self.player.inventory.add_item(item_id, qty)
                 
                 if is_resource:
@@ -356,13 +322,6 @@ class Game:
                 self._log_rare_drop(item_id, item, tier, final_magic_find)
 
                 self.pickup_log.log(item_id, qty)
-
-                for res_id in affected_ids:
-                    new_level = self.player.mastery.get_resource_mastery_level(res_id)[0]
-                    prev_level = prev_levels[res_id]
-                    if new_level > prev_level:
-                        self._log_mastery_level_up(res_id, ITEMS.get(res_id, {}), new_level, prev_level)
-                        self.player.mastery.check_total_mastery_rewards(self.message_log)
 
     def handle_enemy_result(self, result):
         enemy = result.target
@@ -435,7 +394,6 @@ class Game:
             self.current_zone, self.mouse_world, self.player.active_item.skill
         )
 
-        self.player.freeze = not self.camera.is_following()
         self.player.update(dt, self.current_zone.size)
 
         if self.player.combat.hp <= 0:
@@ -702,27 +660,6 @@ class Game:
         overlay.fill((255, 0, 0, int(self.damage_overlay_alpha)))
         self.surface.blit(overlay, (0, 0))
 
-    def _draw_zone_title(self, screen):
-        boss_title = self.camera.boss_title
-        boss_subtitle = self.camera.boss_subtitle
-        boss_title_alpha = self.camera.boss_title_alpha
-
-        if boss_title and boss_title_alpha> 0:
-            title_surf = self.camera.boss_font.render(boss_title, True, (255, 255, 255))
-            subtitle_surf = self.camera.boss_subfont.render(boss_subtitle, True, (200, 200, 200))
-
-            title_surf.set_alpha(boss_title_alpha)
-            subtitle_surf.set_alpha(boss_title_alpha)
-
-            screen.blit(
-                title_surf,
-                (self.camera.viewport_width // 2 - title_surf.get_width() // 2, self.camera.viewport_height // 3)
-            )
-            screen.blit(
-                subtitle_surf,
-                (self.camera.viewport_width // 2 - subtitle_surf.get_width() // 2, self.camera.viewport_height // 3 + 48)
-            )
-
     def _draw_pause_overlay(self, screen):
         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 120))
@@ -769,8 +706,6 @@ class Game:
         screen.blit(self.surface, (0, 0))
 
         self.player.draw_targeting_overlay(screen, self.camera, self.hovered_target, self.target_pos, self.target_radius)
-
-        self._draw_zone_title(screen)
 
         if self._is_paused():
             self._draw_pause_overlay(screen)

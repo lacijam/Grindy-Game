@@ -145,10 +145,17 @@ class CraftingUI(BaseUIPanel):
                     })
 
                     output_id = next(iter(recipe.get("produces", {})), None)
-                    print(output_id)
+
+                    output_item_data = ItemFullData(
+                        output_id,
+                        ITEMS.get(output_id, {}),
+                        {},
+                        False
+                    )
+
                     queue_tooltip({
                         "type": "item",
-                        "data": ITEMS.get(output_id, {}),
+                        "data": output_item_data,
                         "position": (mouse_pos[0] + 280, mouse_pos[1]),
                         "required_states": {GameState.CRAFTING}
                     })

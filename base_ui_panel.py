@@ -46,15 +46,12 @@ class BaseUIPanel:
         pass
 
     def draw_frame(self, screen):
-        # Background
         pygame.draw.rect(screen, (30, 30, 30), (self.panel_x, self.panel_y, self.panel_width, self.panel_height))
         pygame.draw.rect(screen, (200, 200, 200), (self.panel_x, self.panel_y, self.panel_width, self.panel_height), 2)
 
-        # Title
         title_surf = self.font.render(self.title, True, (255, 255, 255))
         screen.blit(title_surf, (self.panel_x + 16, self.panel_y + 12))
 
-        # Close button
         self.close_rect = pygame.Rect(self.panel_x + self.panel_width - 32, self.panel_y + 12, 20, 20)
         mouse_pos = pygame.mouse.get_pos()
         hover = self.close_rect.collidepoint(mouse_pos)

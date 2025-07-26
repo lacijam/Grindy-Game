@@ -91,10 +91,6 @@ class SoundManager:
                 "volume": 0.5,
                 "variants": [sfx("level_up_skill.wav")]
             },
-            "level_up_mastery": {
-                "volume": 0.5,
-                "variants": [sfx("level_up_mastery.wav")]
-            },
             "level_up_beastiary": {
                 "volume": 0.5,
                 "variants": [sfx("level_up_beastiary.wav")]
