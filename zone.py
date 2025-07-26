@@ -108,24 +108,12 @@ class Zone:
         enemy_id = self.choose_enemy_type()
         enemy_class = ENEMY_CLASSES[enemy_id]
         enemy = enemy_class(x, y, player, self)
-        if enemy.type == "boss":
-            self.boss = enemy
-
         return enemy
 
     def spawn_initial_enemies(self, player):
         for _ in range(self.num_enemies):
             enemy = self.spawn_enemy(player)
             self.enemies.append(enemy)
-
-    def get_boss_metadata(self):
-        if not self.boss:
-            return None, None, None  # rect, name, subtitle
-
-        data = ENEMY_DATA.get(self.boss.id, {})
-        name = data.get("name", self.boss.id).title()
-        subtitle = data.get("subtitle", "")  # Add 'subtitle' support to enemy_data
-        return self.boss.rect, name, subtitle
 
     def check_portal_trigger(self, player, zones_by_id):
         for direction, rect in self.portals.items():
@@ -419,8 +407,30 @@ class Zone:
                 )
 
 
+    def _draw_enemy_label(self, screen, camera, font, player, enemy):
+        enemy_screen_rect = camera.apply(enemy.rect)
+        label_text = f"[Lv. {enemy.level}] {enemy.name}"
+
+        dist = player.distance_to(enemy)
+
+        max_dist = 300
+        if dist > max_dist:
+            return
+        
+        min_alpha = 0  # lowest alpha
+        alpha = max(min_alpha, 255 - int((dist / max_dist) * 255))
+
+        player_level = player.skills.get_skill_level("combat")
+        colour = get_enemy_level_colour(enemy.level, player_level)
+
+        font_surf = font.render(label_text, True, colour)
+        font_surf.set_alpha(alpha)
+
+        label_x = enemy_screen_rect.centerx - font_surf.get_width() // 2
+        label_y = enemy_screen_rect.top - font_surf.get_height() - 4
+        screen.blit(font_surf, (label_x, label_y))
+
     def draw(self, screen, camera, font, player, zones_by_id, sound_manager):
-        # Zone background and border
         zone_rect = pygame.Rect(0, 0, self.size, self.size)
         pygame.draw.rect(screen, (50, 50, 50), camera.apply(zone_rect))  # fill
         pygame.draw.rect(screen, (200, 50, 50), camera.apply(zone_rect), 4)  # border
@@ -428,7 +438,6 @@ class Zone:
         for enemy in self.enemies:
             enemy.draw(screen, camera, font)
 
-            # Check mouse over
             if camera.apply(enemy.rect).collidepoint(pygame.mouse.get_pos()):
                 queue_tooltip({
                     "type": "enemy",
@@ -441,33 +450,7 @@ class Zone:
                     "required_states": {GameState.PLAYING}
                 })
 
-            # Draw name + level label
-            enemy_screen_rect = camera.apply(enemy.rect)
-            label_text = f"[Lv. {enemy.level}] {enemy.name}"
-
-            # Distance from player (in pixels)
-            dist = player.distance_to(enemy)
-
-            # Set fade distance range (adjust as needed)
-            max_dist = 300
-            if dist > max_dist:
-                continue
-            
-            min_alpha = 0  # lowest alpha
-            alpha = max(min_alpha, 255 - int((dist / max_dist) * 255))
-
-            # Colour based on level diff
-            player_level = player.skills.get_skill_level("combat")
-            colour = get_enemy_level_colour(enemy.level, player_level)
-
-            # Create label surface with alpha
-            font_surf = font.render(label_text, True, colour)
-            font_surf.set_alpha(alpha)
-
-            # Position above enemy
-            label_x = enemy_screen_rect.centerx - font_surf.get_width() // 2
-            label_y = enemy_screen_rect.top - font_surf.get_height() - 4
-            screen.blit(font_surf, (label_x, label_y))
+            self._draw_enemy_label(screen, camera, font, player, enemy)
 
         self.draw_portals(screen, camera, font, player, zones_by_id)
 

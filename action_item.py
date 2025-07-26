@@ -18,24 +18,20 @@ class ActionItem:
         return self.skill
 
     def get_cooldown_progress(self, player):
-        last = player.item_cooldowns.get(self.id, 0)
+        last = player.item_cooldowns.get(self.id, -9999) # -9999 readies weapon on program start
         attack_speed = player.stats.total_stats.get("attack_speed", 0)
         multiplier = 1 + attack_speed / 100
         effective_delay = self.delay / multiplier
         elapsed = pygame.time.get_ticks() - last
         return min(elapsed / effective_delay, 1.0)
 
-    def use(self, player, zone, camera, play_sound_fn, dt, target, on_node_gather=None):
+    def use(self, player, zone, camera, play_sound_fn, dt, target):
         if not self.ready(player):
             return None
 
         self.trigger(player)
 
-        if self.skill != "combat":
-            return self._use_on_resource_node(player, zone, play_sound_fn, target, on_node_gather)
-
         return None
-
 
     def _calculate_knockback_direction(self, player, target):
         direction = pygame.Vector2(target.rect.center) - pygame.Vector2(player.rect.center)

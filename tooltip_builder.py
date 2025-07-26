@@ -44,11 +44,6 @@ TOOLTIP_TEMPLATES = {
         {"field": "reward_xp", "style": "resource_xp"},
         {"field": "required_skills", "style": "resource_required_skills"},
     ],
-    "recipe": [
-        {"field": "produces", "style": "recipe_outputs"},
-        {"field": "requires", "style": "recipe_materials"},
-        {"field": "requirements", "style": "recipe_requirements"},
-    ],
     "portal": [
         {"field": "name", "style": "header"},
         {"field": "requirements", "style": "zone_requirements"},
@@ -76,13 +71,6 @@ TOOLTIP_TEMPLATES = {
     "hp_healing_sources": [
         {"field": "name", "style": "header"},
         {"field": "healing_sources", "style": "hp_healing_sources"},
-    ],
-    "task": [
-        {"field": "name", "style": "header"},
-        {"field": "task", "style": "task_details"},
-        {"field": "difficulty", "style": "task_difficulty"},  
-        {"field": "rewards", "style": "task_rewards"},
-        {"field": "requirements", "style": "task_requirements"},
     ],
 }
 
@@ -371,30 +359,6 @@ def build_tooltip_lines_from_template(tooltip, ctx, template):
                 if player_level < level: # TODO hardcoded colour
                     lines.append((f"{skill.title()} Lv {level} required", (255, 100, 100)))
 
-        elif style == "recipe_outputs":
-            for output_id, qty in field_data.items():
-                output_item = ITEMS.get(output_id, {})
-                name = output_item.get("name", output_id).title()
-                rarity = output_item.get("rarity", "COMMON")
-                colour = get_rarity_colour(rarity)
-                lines.append((f"Produces: {name} x{qty}", colour))
-
-        elif style == "recipe_materials":
-            for item_id, req_qty in field_data.items():
-                have = ctx.player.inventory.items.get(item_id, 0)
-                name = ITEMS.get(item_id, {}).get("name", item_id).title()
-                colour = (255, 255, 255) if have >= req_qty else (255, 100, 100) # TODO hardcoded colour
-                lines.append((f"{name}: {have}/{req_qty}", colour))
-
-        elif style == "recipe_requirements":
-            requirements = field_data
-            for skill, level in requirements.items():
-                if ctx.player.skills.get_skill_level(skill) >= level:
-                    colour = (100, 255, 100)  # green TODO hardcoded colour
-                else:
-                    colour = (255, 100, 100)  # red
-                lines.append((f"Requires: {skill.title()} Lv {level}", colour))
-
         elif style == "zone_requirements":
             for skill, level in field_data.items():
                 current = ctx.player.skills.get_skill_level(skill)
@@ -611,45 +575,6 @@ def build_tooltip_lines_from_template(tooltip, ctx, template):
                 ("XP/hour: ", (200, 200, 200)),
                 (f"{field_data}", (255, 255, 150))
             ])
-        elif style == "task_details":
-            task_data = field_data
-            if task_data["type"] == "kill":
-                enemy_id = task_data["target"]
-                enemy_name = ENEMY_DATA.get(enemy_id, {}).get("name", enemy_id.title())
-                lines.append([(f"Kill {task_data['count']} x {enemy_name}", (180, 180, 255))])
-
-            elif task_data["type"] == "gather":
-                resource_id = task_data["target"]
-                item_name = ITEMS.get(resource_id, {}).get("name", resource_id.title())
-                lines.append([(f"Gather {task_data['count']} x {item_name}", (180, 180, 255))])
-
-            elif task_data["type"] == "craft":
-                item_id = task_data["target"]
-                item_name = ITEMS.get(item_id, {}).get("name", item_id.title())
-                lines.append([(f"Craft {task_data['count']} x {item_name}", (180, 180, 255))])
-
-            elif task_data["type"] == "reach_level":
-                lines.append([(f"Reach {task_data['skill'].title()} Level {task_data['level']}", (180, 180, 255))])
-
-        elif style == "task_rewards":
-            for k, v in field_data.items():
-                if k == "item":
-                    item_data = ITEMS.get(v, {})
-                    item_name = item_data.get("name", v.title())
-                    lines.append([(f"Reward: {item_name} x{field_data.get('qty',1)}", (100, 255, 100))])
-                elif k == "coins":
-                    lines.append([(f"Reward: {v} Coins", (255, 215, 0))])
-
-        elif style == "task_requirements":
-            for skill, req_level in field_data.items():
-                current_level = ctx.player.skills.get_skill_level(skill)
-                colour = (100, 255, 100) if current_level >= req_level else (255, 100, 100)
-                lines.append([(f"Requires: {skill.title()} Lv {req_level}", colour)])
-
-        elif style == "task_difficulty":
-            difficulty = field_data.lower()
-            colour = get_difficulty_colour(difficulty)
-            lines.append([(f"Difficulty: {difficulty.title()}", colour)])
 
     return lines
 

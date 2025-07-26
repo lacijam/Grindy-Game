@@ -51,22 +51,26 @@ class CombatEntity:
 
         for effect in self._active_effects:
             handler_fn = ABILITY_HANDLERS.get(effect["id"])
-            if handler_fn and getattr(handler_fn, "phase", None) == "periodic":
-                last_tick = self._last_periodic_tick_times.get(effect["id"], 0)
-                context = {
-                    "player": self.owner,
-                    "combat_entity": self,
-                    "now": now,
-                    "last_tick": last_tick,
-                    "level": effect["tier"],
-                    "zone": getattr(self.owner, "zone", None),
-                    "effect_hooks": []
-                }
-                triggered = handler_fn(context, level=effect["tier"])
-                if triggered:
-                    self._last_periodic_tick_times[effect["id"]] = now
-                    self.owner.zone.effect_hooks.extend(context.get("effect_hooks", []))
+            if not handler_fn or getattr(handler_fn, "phase", None) != "periodic":
+                continue
 
+            last_tick = self._last_periodic_tick_times.get(effect["id"], 0)
+
+            context = {
+                "player": self.owner,
+                "combat_entity": self,
+                "now": now,
+                "last_tick": last_tick,
+                "level": effect["tier"],
+                "zone": getattr(self.owner, "zone", None),
+                "effect_hooks": []
+            }
+
+            triggered = handler_fn(context, level=effect["tier"])
+
+            if triggered:
+                self._last_periodic_tick_times[effect["id"]] = now
+                self.owner.zone.effect_hooks.extend(context.get("effect_hooks", []))
 
         self.update_regen()
         self.clamp_hp_to_max()
@@ -128,6 +132,7 @@ class CombatEntity:
     def heal(self, amount):
         if amount <= 0:
             return
+        
         print(f"CombatEntity {self.owner.id} healed for {amount} HP")
         self.hp = min(self.max_hp, self.hp + amount)
 

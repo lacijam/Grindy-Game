@@ -11,37 +11,9 @@ ZONE_DATA = [
         ],
         "num_resources": 3,
         "connections": {
-            "top": "forest",
             "right": "graveyard",
-        },
-        "type": "combat",
-    },
-    {
-        "id": "forest",
-        "name": "Forest",
-        "size": 1200,
-        "safe": True,
-        "enemy_spawn_table": [("slime", 1.0), ],
-        "num_enemies": 25,
-        "resource_node_spawn_table": [
-        ],
-        "num_resources": 0,
-        "connections": {
-            "top": "deep_hollow",
-        },
-        "type": "combat",
-    },
-    {
-        "id": "deep_hollow",
-        "name": "Deep Hollow",
-        "size": 800,
-        "safe": True,
-        "enemy_spawn_table": [("tree_fangs", 1.0), ],
-        "num_enemies": 10,
-        "resource_node_spawn_table": [
-        ],
-        "num_resources": 0,
-        "connections": {
+            "left": "spiders_den",
+            "top": "crypts",
         },
         "type": "combat",
     },
@@ -58,8 +30,6 @@ ZONE_DATA = [
         "num_resources": 0,
         "connections": {
             "left": "starter_zone",
-            "right": "spiders_den",
-            "bottom": "crypts",
         },
         "type": "combat",
         "requirements": {"combat": 2}
@@ -74,7 +44,7 @@ ZONE_DATA = [
         "resource_node_spawn_table": [ ("web_cocoon", 1.0) ],
         "num_resources": 10,
         "connections": {
-            "left": "graveyard",
+            "right": "starter_zone",
         },
         "type": "combat",
         "requirements": {"combat": 3 }
@@ -84,30 +54,14 @@ ZONE_DATA = [
         "name": "The Crypts",
         "size": 1200,
         "safe": False,
-        "enemy_spawn_table": [("ghoul", 0.5), ("zombie", 0.9)],
+        "enemy_spawn_table": [("skeleton", 0.9), ("zombie", 0.1)],
         "num_enemies": 15,
         "resource_node_spawn_table": [],
         "num_resources": 0,
         "connections": {
-            "top": "graveyard",
-            "right": "abandoned_tomb",
+            "bottom": "starter_zone",
         },
         "type": "combat",
         "requirements": {"combat": 5}
-    },
-    {
-        "id": "abandoned_tomb",
-        "name": "Abandoned Tomb",
-        "size": 600,
-        "safe": False,
-        "enemy_spawn_table": [("skeleton", 1.0), ("corrupted soul", 0.2)],
-        "num_enemies": 10,
-        "resource_node_spawn_table": [],
-        "num_resources": 0,
-        "connections": {
-            "left": "crypts",
-        },
-        "type": "combat",
-        "requirements": {"combat": 8 }
     },
 ]

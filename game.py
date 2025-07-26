@@ -4,11 +4,8 @@ from constants import *
 from gamestate import GameState
 from camera import Camera
 from player import Player
-from craftingui import CraftingUI
 from inventoryui import InventoryUI
 from beastiaryui import BeastiaryUI
-from task_ui import TaskUI
-from task_manager import TaskManager
 from item_data import *
 from zone import Zone
 from zone_data import ZONE_DATA
@@ -42,6 +39,8 @@ class Game:
         self.player = Player(0, 0, 30, self.current_zone)
         self.camera = Camera((-self.player.rect.x + VIEWPORT_WIDTH//2, -self.player.rect.y + VIEWPORT_HEIGHT//2), VIEWPORT_WIDTH, VIEWPORT_HEIGHT)
         
+        self.mouse_held = False
+
         self.pickup_log = PickupLog(self.font)
         self.message_log = MessageLog(font=self.font)
 
@@ -50,19 +49,11 @@ class Game:
 
         self.sound_manager = SoundManager()
 
-        self.tasks = TaskManager(self.player, self.message_log, self.sound_manager)
-        self.task_ui = TaskUI(self.tasks, self.font, self.message_log)
-        self._notified_unclaimed = False
-        self._unclaimed_reminder_timer = 0
-        
-        self.craftingui = CraftingUI(self.player, self.font, self.tasks, self.sound_manager)
         self.inventoryui = InventoryUI(self.player, self.font, self.sound_manager)
         self.beastiary_ui = BeastiaryUI(self.player, self.font)
 
         self.damage_overlay_alpha = 0
         self.damage_overlay_decay_rate = 300
-
-        self.mouse_held = False
 
         self._change_zone("starter_zone")
 
@@ -137,12 +128,8 @@ class Game:
     def get_active_ui(self):
         if self.state == GameState.INVENTORY:
             return self.inventoryui
-        elif self.state == GameState.CRAFTING:
-            return self.craftingui
         elif self.state == GameState.BEASTIARY:
             return self.beastiary_ui
-        elif self.state == GameState.TASKS:
-            return self.task_ui
         return None
 
     def handle_mouse_event(self, event):
@@ -171,11 +158,9 @@ class Game:
 
         key_to_state_toggle = {
             pygame.K_TAB: GameState.INVENTORY,
-            pygame.K_c: GameState.CRAFTING,
             pygame.K_b: GameState.BEASTIARY,
             pygame.K_p: GameState.PAUSED,
             pygame.K_SLASH: GameState.MESSAGE_LOG,
-            pygame.K_t: GameState.TASKS
         }
 
         if key in key_to_state_toggle:
@@ -256,8 +241,6 @@ class Game:
 
                 self.message_log.queue(self._get_level_up_message(skill, new_level, desc))
 
-            self.tasks.handle_level_up(skill, new_level)
-
             self.message_log.queue([
                 ("Skill", "white"),
                 (" Level Up! ", "white"),
@@ -316,9 +299,6 @@ class Game:
 
                 self.player.inventory.add_item(item_id, qty)
                 
-                if is_resource:
-                    self.tasks.handle_resource_gain(item_id, qty)
-
                 self._log_rare_drop(item_id, item, tier, final_magic_find)
 
                 self.pickup_log.log(item_id, qty)
@@ -368,7 +348,6 @@ class Game:
             self.sound_manager.queue("level_up_beastiary")
 
         self.player.beastiary.check_total_beastiary_rewards(self.handle_gainxp, self.message_log)
-        self.tasks.handle_kill(enemy.id)
 
     def handle_events(self, events):
         for event in events:
@@ -387,9 +366,6 @@ class Game:
         if self.state != GameState.PLAYING:
             return
         
-        mouse_just_clicked = self.mouse_held and not self._mouse_prev_held
-        self._mouse_prev_held = self.mouse_held
-
         self.hovered_target, self.target_pos, self.target_radius = self.player.get_target_info(
             self.current_zone, self.mouse_world, self.player.active_item.skill
         )
@@ -417,27 +393,13 @@ class Game:
 
         item = self.player.active_item
 
-        should_use = False
-        if item.skill != "combat":
-            should_use = self.mouse_held and item.ready(self.player)
-        else:
-            should_use = mouse_just_clicked and item.ready(self.player)
+        should_use = self.mouse_held and item.ready(self.player)
 
         if should_use and self.hovered_target:
             if item.skill == "combat":
                 item.trigger(self.player)
                 self.current_zone.process_combat(self.player, self.hovered_target, item, self.camera, dt)
-            else:
-                item.use(self.player, self.current_zone, self.camera, self.sound_manager.queue, dt, self.hovered_target, self.tasks.handle_node_gather)
-#
 
-
-
-# TOOLS ARE NOW BROKEN TOOLS ARE NOW BROKEN TOOLS ARE NOW BROKEN TOOLS ARE NOW BROKEN TOOLS ARE NOW BROKEN TOOLS ARE NOW BROKEN TOOLS ARE NOW BROKEN 
-
-
-
-#
         self.current_zone.flush_combat_results(self)
         
         self.pickup_log.update()
@@ -450,23 +412,6 @@ class Game:
 
         self.damage_popups = [p for p in self.damage_popups if p.is_alive()]
         self.xp_popups = [p for p in self.xp_popups if p.is_alive()]
-
-        unclaimed_count = sum(1 for t in self.tasks.tasks if t.ready_to_claim and not t.completed)
-        
-        self._unclaimed_reminder_timer += dt
-
-        if unclaimed_count > 0:
-            if not self._notified_unclaimed or self._unclaimed_reminder_timer >= 30:
-                self.message_log.queue([
-                    ("You have ", "white"),
-                    (str(unclaimed_count), (100, 255, 100)),
-                    (" unclaimed task(s)! Press T to open Tasks.", "white")
-                ])
-                self._notified_unclaimed = True
-                self._unclaimed_reminder_timer = 0
-        else:
-            self._notified_unclaimed = False
-            self._unclaimed_reminder_timer = 0
 
         self._popup_offsets = {}
 

@@ -99,14 +99,6 @@ class SoundManager:
                 "volume": 0.25,
                 "variants": [sfx("drop.wav")]
             },
-            "task_ready": {
-                "volume": 0.75,
-                "variants": [sfx("task_ready.wav")]
-            },
-            "task_claim": {
-                "volume": 0.75,
-                "variants": [sfx("task_claim.wav")]
-            },
             "zap": {
                 "volume": 0.75,
                 "variants": [sfx("zap.wav")]

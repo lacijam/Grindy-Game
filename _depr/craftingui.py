@@ -30,7 +30,7 @@ RECIPE_BUTTON_HEIGHT = 30
 RECIPE_BUTTON_Y_SPACING = 35
 
 class CraftingUI(BaseUIPanel):
-    def __init__(self, player, font, task_manager, sound_manager):
+    def __init__(self, player, font, sound_manager):
         super().__init__("Crafting", font, 100, 80, 480, 600)
         self.collapsed_categories = {}
         self.crafting_buttons = []
@@ -39,7 +39,6 @@ class CraftingUI(BaseUIPanel):
         self.show_all_recipes = False
         self.player = player
         self.sound_manager = sound_manager
-        self.task_manager = task_manager
 
     def handle_mouse_click(self, mouse_pos):
         result = super().handle_mouse_click(mouse_pos)
@@ -65,8 +64,6 @@ class CraftingUI(BaseUIPanel):
                         self.player.inventory.remove_item(item, count)
                     for item, count in recipe["produces"].items():
                         self.player.inventory.add_item(item, count)
-
-                    self.task_manager.handle_craft(item, count)
 
                 return result
         
