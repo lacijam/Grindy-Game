@@ -164,29 +164,3 @@ class SoundManager:
             seen.add(sound_id)
 
         self._sound_queue.clear()
-
-
-    def play_positional(self, sound_id, source_pos, listener_pos, max_distance=600, power=2):
-        entry = self.sounds.get(sound_id)
-        if not entry:
-            return
-
-        dx = source_pos[0] - listener_pos[0]
-        dy = source_pos[1] - listener_pos[1]
-        distance = math.hypot(dx, dy)
-        if distance >= max_distance:
-            return
-
-        volume = (1 - (distance / max_distance)) ** power
-        volume = max(0.05, min(volume, 1.0))  # keep faint ambience
-
-        pan = dx / max_distance  # -1 (left) to +1 (right)
-        pan = max(-1, min(pan, 1))
-        left_volume = volume * (1 - pan) if pan > 0 else volume
-        right_volume = volume * (1 + pan) if pan < 0 else volume
-
-        volume_modifier = entry.get("volume", 0.2)
-
-        sound = random.choice(entry["variants"])
-        sound.set_volume(volume * volume_modifier)
-        sound.play()
